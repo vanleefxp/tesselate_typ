@@ -1,0 +1,7 @@
+[package]
+name = "tesselate"
+version = "0.1.0"
+entrypoint = "src/lib.typ"
+authors = ["F.X.P."]
+license = "MIT"
+description = "A package for combining multiple images into masonry or matrix layout."

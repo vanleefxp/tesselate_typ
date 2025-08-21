@@ -1,5 +1,5 @@
 [package]
-name = "tesselate"
+name = "tessera"
 version = "0.1.0"
 entrypoint = "src/lib.typ"
 authors = ["F.X.P. <https://github.com/vanleefxp>"]

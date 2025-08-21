@@ -11,49 +11,59 @@ Masonry layout is the layout format that stacks images continuously in a primary
 Given the images in each columns, it requires the images' aspect ratios and the gap between images and columns to calculate the exact size of each image. The `masonry` function provided by `tesselate` completes the calculation and lays out the images as long as you pass in the images in each column.
 
 
-```typst
-#import "@preview/oxifmt:1.0.0": strfmt
-#import "@preview/tesellate:x.y.z": masonry
-
-// 3 images of cats
-#let cat-images = range(1, 4).map(i => image(strfmt("assets/image/cat{:}.jpg", i)))
-// 3 images of dogs
-#let dog-images = range(1, 4).map(i => image(strfmt("assets/image/dog{:}.jpg", i)))
+```typ
+#import "@preview/tesselate:x.y.z": masonry
 
 // wrap images in each column into a sub-array
 // if a column contains 1 image only then you may omit the array and just pass in the image
 #masonry(
-  // column 1, with 2 cat images
-  (
-    cat-images.at(0),
-    cat-images.at(1),
-  ),
-  // column 2, with 1 cat image
-  cat-images.at(2),
-  // column 3, with 3 dog images
-  dog-images,
+  // column 1, with 2 images
+  (image("cat1.jpg"), image("cat2.jpg")),
+  // column 2, with 1 image
+  image("cat3.jpg"),
+  // column 3, with 3 images
+  (image("dog1.jpg"), image("dog2.jpg"), image("dog3.jpg")),
   // add gap between images
   gutter: 1em,
 )
 ```
 
-`masonry` by default uses the original aspect ratio of each image. This can be changed by wrapping the `image` into a `masonry-item` and passing the `aspect-ratio` argument. `aspect-ratio` is defined as the ratio of image height over width.
+`masonry` by default uses the original aspect ratio of each image. This can be changed by wrapping the `image` into a `scalable` and passing the `aspect-ratio` argument. `aspect-ratio` is defined as the ratio of image height over width.
 
 ```typ
+#import "@preview/tesselate:x.y.z": masonry, scalable
+
 #masonry(
-  // column 1, with 2 cat images
   (
-    masonry-item(
-      cat-images.at(0),
-      aspect-ratio: 1,
-    ),
-    cat-images.at(1),
+    // force the image to have an aspect ratio of 1,
+    // regardless of the original image's aspect ratio
+    scalable(image("cat1.jpg"), aspect-ratio: 1),
+    image("cat2.jpg"),
   ),
-  // column 2, with 1 cat image
-  cat-images.at(2),
-  // column 3, with 3 dog images
-  dog-images,
-  // add gap between images
+  image("cat3.jpg"),
+  (image("dog1.jpg"), image("dog2.jpg"), image("dog3.jpg")),
+  gutter: 1em,
+)
+```
+
+You may also rotate or mirror images if you like.
+
+```typ
+#import "@preview/tesselate:x.y.z": masonry, scalable
+#import tesselate.transform: upside-down, cw, ccw, mirrored-x, mirrored-y
+
+#masonry(
+  (
+    image("cat1.jpg"),
+    mirrored-x(image("cat2.jpg")),
+  ),
+  cw(image("cat3.jpg")),
+  (
+    ccw(image("dog1.jpg")),
+    // custom aspect ratio can be combined with transforms
+    scalable(upside-down(image("dog2.jpg")), aspect-ratio: 3/4),
+    mirrored-y(image("dog3.jpg")),
+  ),
   gutter: 1em,
 )
 ```
@@ -62,6 +72,25 @@ Given the images in each columns, it requires the images' aspect ratios and the 
 
 ![Matrix Layout](assets/excalidraw/matrix-layout.excalidraw.svg)
 
+Matrix layout lays out images in grids. This format is often seen in social media posts and CAPTCHAs. In matrix layout you can specify the number of rows and columns. By default all rows and columns have the same width and height, and the images have aspect ratio of 1. Currently, row and column widths must be specified in `fr`. The absolute length for `1fr` is equal in horizontal and vertical direction, and the matrix layout always fills up the horizontal space available.
 
-Matrix layout lays out images in grids. This format is often seen in social media posts and CAPTCHAs. In matrix layout you can specify the number of rows and columns. By default all rows and columns have the same width and height, and the images have aspect ratio of 1. Currently, row and column widths must be specified in `fr`. The absolute length for `1fr` is equal in horizontal and vertical direction, and the matrix layout by default fills up the horizontal space available
+```typ
+#import "@preview/oxifmt:1.0.0": strfmt
+
+#let images = range(1, 10).map(i => image(strfmt("image{:}.jpg", i)))
+
+// creates a 3*3 matrix layout
+// each image has aspect ratio 1 (square)
+#matrix(..images, columns: 3, gutter: 1em)
+
+// specify different widths for rows and columns
+#matrix(
+  ..images,
+  rows: (3fr, 4fr, 5fr),
+  columns: (2fr, 3fr, 4fr),
+  gutter: 1em
+)
+```
+
+
 

@@ -63,5 +63,5 @@ Given the images in each columns, it requires the images' aspect ratios and the 
 ![Matrix Layout](assets/excalidraw/matrix-layout.excalidraw.svg)
 
 
-Matrix layout lays out images in grids. This format is often seen in social media posts and CAPTCHAs
+Matrix layout lays out images in grids. This format is often seen in social media posts and CAPTCHAs. In matrix layout you can specify the number of rows and columns. By default all rows and columns have the same width and height, and the images have aspect ratio of 1. Currently, row and column widths must be specified in `fr`. The absolute length for `1fr` is equal in horizontal and vertical direction, and the matrix layout by default fills up the horizontal space available
 

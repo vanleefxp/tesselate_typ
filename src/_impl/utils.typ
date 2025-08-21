@@ -1,3 +1,6 @@
+#import "@preview/elembic:1.1.1" as e
+#import "item.typ": scalable
+
 #let div = calc.div-euclid
 #let mod = calc.rem-euclid
 
@@ -6,7 +9,6 @@
   let r = mod(a, b)
   if r == 0 { q } else { q + 1 }
 }
-
 
 /// argument parser for `elembic` elements that accepts an arbitrary number of positional arguments.
 #let arbitrary-pos-arg-parser(default-parser, fields: none, typecheck: none) = {
@@ -21,6 +23,22 @@
       return (false, "unexpected positional arguments\n  hint: these can only be passed to the constructor")
     }
     default-parser(args, include-required: include-required)
+  }
+}
+
+/// Calculate the aspect ratio of a `content` item.
+///
+/// - item (content | bytes | str): a `content`, or path to an image, or source bytes of an image
+/// -> float
+#let aspect-ratio(item, reci: false) = {
+  assert.eq(e.eid(item), e.eid(scalable))
+  let fields = e.fields(item)
+  if "aspect-ratio" in fields {
+    let aspect-ratio = fields.aspect-ratio
+    if (reci) { 1 / aspect-ratio } else { aspect-ratio }
+  } else {
+    let (width, height) = measure(item)
+    if (reci) { width / height } else { height / width }
   }
 }
 
@@ -85,4 +103,70 @@
   arr.chunks(n-cols)
 }
 
+#let resolve-gutter1(
+  gutter: auto,
+  n: 1,
+  default-gutter: 0pt,
+  inv: false
+) = {
+  let gutter-sum = 0pt
+  let gutter = gutter
+  if gutter == auto {
+    gutter-sum = default-gutter.to-absolute() * (n - 1)
+    gutter = default-gutter
+  } else if type(gutter) == length {
+    gutter-sum = gutter * (n - 1)
+  } else if type(gutter) == array {
+    gutter = range(n - 1).map(i => gutter.at(mod(i, gutter.len())).to-absolute())
+    gutter-sum = gutter.sum(default: 0pt)
+    if inv { gutter = gutter.rev() }
+  } else {
+    assert.eq(type(gutter), function)
+    gutter = range(n - 1).map(gutter)
+    gutter-sum = gutter.sum(default: 0pt)
+    if inv { gutter = gutter.rev() }
+  }
+  (gutter: gutter, sum: gutter-sum)
+}
 
+#let resolve-gutter2(
+  gutter: auto,
+  n-primary: none,
+  n: 1,
+  default-gutter: 0pt,
+  dir1-inv: false,
+  dir2-inv: false
+) = {
+  let n = n
+  let gutter = gutter
+  if type(gutter) == array {
+    assert.eq(n, gutter.len())
+  }
+
+  // resolve row gutters and calculate the sum of row gutters in each column
+  if type(gutter) == function {
+    gutter = n-primary
+      .enumerate()
+      .map(((j, m)) => range(m - 1).map(i => gutter(j, i)))
+  } else if gutter == auto {
+    gutter = (gutter,) * n
+  } else if type(gutter) == length {
+    gutter = (gutter,) * n
+  }
+  // `row-gutter` is now of type `array`
+  let temp = gutter
+    .zip(n-primary)
+    .map(
+      ((g, n)) => resolve-gutter1(
+        gutter: g,
+        n: n,
+        default-gutter: default-gutter,
+        inv: dir1-inv,
+      )
+    )
+
+  if dir2-inv { temp = temp.rev() }
+  gutter = temp.map(item => item.gutter)
+  let gutter-sums = temp.map(item => item.sum)
+  (gutter: gutter, sum: gutter-sums)
+}
